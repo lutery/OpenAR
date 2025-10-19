@@ -2,6 +2,12 @@
 #include <ImageRecognition/TemplateMatchMPR.h>
 #include <Log/MiniLog.h>
 
+/**
+ * @brief
+ * @param image todo 这是什么图
+ * @param temp todo 这是什么图
+ * @param threshold todo
+ */
 ar::point ar::MultiPointsRecognition::compareImageReturnCentrePoint(cv::Mat& image, cv::Mat& temp, const float& threshold) {
 	ar::point point;
 	if (num_points < 8) ar::warn("num_points < 8 are not recommand !");
@@ -9,13 +15,17 @@ ar::point ar::MultiPointsRecognition::compareImageReturnCentrePoint(cv::Mat& ima
 		ar::error("Image empty !");
 		return point;
 	}
+	// 看来这里要求模板图不能大于原图
 	if (temp.rows * temp.cols > image.rows * image.cols) {
 		ar::error("temp size : {} > image size : {} !", temp.rows * temp.cols, image.rows * image.cols);
 		return point;
 	}
+
+	// 将所有图像转为灰度图
+	// 看来这是是以灰度图来进行对比的 todo 是否可以直接彩色图
 	if (temp.channels() != 1) cv::cvtColor(temp, temp, cv::COLOR_BGR2GRAY);
 	if (image.channels() != 1) cv::cvtColor(image, image, cv::COLOR_BGR2GRAY);
-	int res[2] = { -1, -1 };
+	int res[2] = { -1, -1 }; // todo
 	std::string res_msg = "";
 	bool err = false;
 	err = ar::templateMatchMPR(res,

@@ -13,10 +13,10 @@
 
 int main(){
     ar::setMiniLogLevel(ar::level::debug);
-    const std::string mumu_path = "D:\\MuMu\\MuMuPlayer-12.0";
+    const std::string mumu_path = "D:\\MuMu\\MuMuPlayer-12.0"; // 路径写死？这个应该安卓模拟器
     int index = 1;
     
-    pcr::global_params params(mumu_path,
+    pcr::global_params params(mumu_path, 
                               index, 
                               "127.0.0.1",
                               16416,
@@ -28,10 +28,11 @@ int main(){
                               #endif
                               ar::deviceControllerType::MUMU);
     
-    params.start_with_silence = false;
+    params.start_with_silence = false; 
     params.operate_duration = 200;
 
-    //Compare image speed
+    //Compare image speed 
+    // todo 看起来是测试图像对比函数的效率
     pcr::checkImageCompareRate(ar::imageRecognitionType::PSR);
     pcr::checkImageCompareRate(ar::imageRecognitionType::MPR);
 

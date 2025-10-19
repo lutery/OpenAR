@@ -2,6 +2,20 @@
 #include <math.h>
 #include <random>
 
+/**
+ * @brief todo 看起来是模板匹配的多点对比算法
+ * 
+ * @param res todo 返回结果
+ * @param res_msg todo 返回信息
+ * @param image 原图数据像素裸数据
+ * @param temp 模板图数据像素裸数据
+ * @param image_width 原图宽度
+ * @param image_height 原图高度
+ * @param temp_width 模板图宽度
+ * @param temp_height 模板图高度
+ * @param threshold todo 阈值
+ * @param num_points todo 采样点数量
+ */
 bool ar::templateMatchMPR(int* res,
     std::string& res_msg,
     unsigned char* image,
@@ -15,7 +29,7 @@ bool ar::templateMatchMPR(int* res,
 {
     bool err = false;
 
-    int* compare_points_array = new int[2 * num_points];
+    int* compare_points_array = new int[2 * num_points];  // todo
     ar::detail::makePointsRandom(compare_points_array, temp, temp_width, temp_height, num_points);
 
     size_t cur_min_ssd = (size_t)255 * 255 * num_points;
@@ -41,19 +55,32 @@ bool ar::templateMatchMPR(int* res,
     return true;
 }
 
+/**
+ * @brief 生成随机采样点，先将temp均分为指定的方块数量，然后在每个方块内部随机采样一个点存储搭配points中，总共采样num_points个点
+ * @param points 采样点数组, 每个点由两个整数表示 (x, y),采用1维数组存储
+ * @param temp 模板图像素裸数据
+ * @param temp_width 模板图宽度
+ * @param temp_height 模板图高度
+ * @param num_points 采样点数量
+ */
 void ar::detail::makePointsRandom(int* points, unsigned char* temp, const int& temp_width, const int& temp_height, const int& num_points){
-    int* res = new int[2];
+    int* res = new int[2]; // todo 这是什么？看解释因为是存储将图片均分的行数和列数
     findBestDivision(res, num_points);
 
+    // 提取均分的行数和列数，这里使用的比较传统过的方式
+    // 如果结合pair或者tuple，可是使用auto[]自动解包或者std::tie的方式实现自动解包
     int region_height = res[0];
     int region_width = res[1];
 
+    // 计算分割后每个区域的高度和宽度
     int height_per_region = temp_height / region_height;
     int width_per_region = temp_width / region_width;
 
     std::random_device rd;
     std::mt19937 generator(rd());
 
+    // 遍历分割的每个区域
+    // 这段代码不是选择每个区域的中间点，而是在每个区域内随机选择一个点，确保采样点均匀分布在整个模板图像上。
     for(int i = 0; i < region_height; i++){
         for(int j = 0; j < region_width; j++){
             std::uniform_int_distribution<int> distribution_x(j * width_per_region, (j + 1) * width_per_region - 1);
@@ -63,15 +90,25 @@ void ar::detail::makePointsRandom(int* points, unsigned char* temp, const int& t
             points[(i * region_width + j) * 2] = x_;
             points[(i * region_width + j) * 2 + 1] = y_;
         }
-    }
+    } 
+    // 安全的释放内存
     delete[] res;
 }
 
+/**
+ * @brief 目的：将一个数字 num 分解为两个尽可能接近的因数，用于将模板图像划分为矩形网格。
+ * 
+ * @param res 返回结果，res[0] 为行数，res[1] 为列数 todo 意义？
+ * @param num 需要分解的数字（采样点数量）
+ */
 void ar::detail::findBestDivision(int* res, const int& num){
+    // 从 sqrt(num) 开始向下遍历，找到第一个能整除 num 的数
+    // 相当于找到能够将num分解为两个尽可能接近的因数 axb=num
+    // todo 为啥？
     for(int i = (int)std::sqrt(num); i >= 1; i--){
         if(num % i == 0) {
-            res[0] = i;
-            res[1] = num / i;
+            res[0] = i;           // 行数（较小的因数）
+            res[1] = num / i;     // 列数（较大的因数）
             return ;
         }
     }

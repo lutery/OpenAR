@@ -48,11 +48,16 @@ pcr::global_params::global_params(const std::string device_path,
     image_recognition = image_recognition_factory.createIamgeRecognition(image_recognition_type);
 }
 
+/**
+ * @brief Check image compare rate
+ * @param image_recognition_type Image recognition type 图像识别方法的类型
+ * todo 总结两种图像对比方法的不同
+ */
 void pcr::checkImageCompareRate(ar::imageRecognitionType image_recognition_type) {
     cv::Mat image = cv::imread("./res/test/1.png");
     cv::Mat temp = cv::imread("./res/test/2.png");
     ar::point p;
-    ar::ImageRecognitionFactory image_recognition_factory;
+    ar::ImageRecognitionFactory image_recognition_factory; // 图像识别工厂，根据传入的类型创建不同的图像识别对象
     auto image_recognition = image_recognition_factory.createIamgeRecognition(image_recognition_type);
     auto start = std::chrono::high_resolution_clock::now();
     p = image_recognition->compareImageReturnCentrePoint(image, temp, 0.95f);
