@@ -29,22 +29,33 @@ bool ar::templateMatchMPR(int* res,
 {
     bool err = false;
 
-    int* compare_points_array = new int[2 * num_points];  // todo
+    int* compare_points_array = new int[2 * num_points];  // 存储模板图片均匀分块后，在每个分块内部随机采样的点的坐标，因为一个坐标由两个整数表示 (x, y)，所以数组大小为 2 * num_points
+    // compare_points_array采样点的坐标是相对于模板图的左上角(0,0)的坐标
     ar::detail::makePointsRandom(compare_points_array, temp, temp_width, temp_height, num_points);
 
     size_t cur_min_ssd = (size_t)255 * 255 * num_points;
+    // image_height - temp_height：表示在原图比模板图片大多少
+    // image_width - temp_width：表示在原图比模板图片大多少
+    // h和w按照模板图在原图中可以移动的位置进行遍历
     for (int h = 0; h <= image_height - temp_height; h++) {
         for (int w = 0; w <= image_width - temp_width; w++) {
             size_t ssd = 0;
+            // 遍历所有采样点，todo 计算SSD（Sum of Squared Differences，平方差和）
             for (int t = 0; t < num_points; t++) {
+                // 获取采样点在模板图中的坐标
                 int temp_x = compare_points_array[t * 2];
                 int temp_y = compare_points_array[t * 2 + 1];
+                // 计算采样点在原图中的对应坐标，看来这里是将模板图放置在原图的 (w, h) 位置时，采样点在原图中的位置
                 int image_x = w + temp_x;
                 int image_y = h + temp_y;
 
+                // 计算平方差并累加到ssd中，这是计算采样点在原图中的像素值与模板图中对应采样点的像素值之间的差异的平方
                 ssd += (size_t)(image[image_y * image_width + image_x] - temp[temp_y * temp_width + temp_x]) *
                     (image[image_y * image_width + image_x] - temp[temp_y * temp_width + temp_x]);
             }
+
+            // 如果当前的模板和图片的采样点的SSD小于阈值对应的最大允许SSD，并且小于当前最小SSD，则更新结果
+            //  (size_t)num_points * 255 * 255 * (1 - threshold) * (1 - threshold)的公式由来看md文档
             if (ssd < (size_t)num_points * 255 * 255 * (1 - threshold) * (1 - threshold) && ssd < cur_min_ssd) {
                 res[0] = w; res[1] = h;
                 cur_min_ssd = ssd;
