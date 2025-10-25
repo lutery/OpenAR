@@ -25,9 +25,10 @@ ar::point ar::MultiPointsRecognition::compareImageReturnCentrePoint(cv::Mat& ima
 	// 看来这是是以灰度图来进行对比的 todo 是否可以直接彩色图
 	if (temp.channels() != 1) cv::cvtColor(temp, temp, cv::COLOR_BGR2GRAY);
 	if (image.channels() != 1) cv::cvtColor(image, image, cv::COLOR_BGR2GRAY);
-	int res[2] = { -1, -1 }; // todo
+	int res[2] = { -1, -1 }; // 存储temp图片在image图片中最匹配的左上角坐标
 	std::string res_msg = "";
 	bool err = false;
+	// 调用模板匹配的多点对比算法，找到temp图片在image图片中的最匹配的左上角坐标
 	err = ar::templateMatchMPR(res,
 		res_msg,
 		image.data,

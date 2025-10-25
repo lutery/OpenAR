@@ -5,8 +5,8 @@
 /**
  * @brief todo 看起来是模板匹配的多点对比算法
  * 
- * @param res todo 返回结果
- * @param res_msg todo 返回信息
+ * @param res 返回结果，记录的是template在image中匹配到的位置的左上角坐标 (x, y)
+ * @param res_msg 返回信息，记录错误信息，但是i这里貌似无用
  * @param image 原图数据像素裸数据
  * @param temp 模板图数据像素裸数据
  * @param image_width 原图宽度
