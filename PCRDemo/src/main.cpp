@@ -32,7 +32,7 @@ int main(){
     params.operate_duration = 200;
 
     //Compare image speed 
-    // todo 看起来是测试图像对比函数的效率
+    //测试图像对比方法的效率
     pcr::checkImageCompareRate(ar::imageRecognitionType::PSR);
     pcr::checkImageCompareRate(ar::imageRecognitionType::MPR);
 

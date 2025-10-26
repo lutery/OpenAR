@@ -3,7 +3,7 @@
 /**
  * @brief 使用PSR算法进行模板匹配
  * 
- * @param int* res: 存储找到的坐标位置
+ * @param int* res: 存储找到的坐标位置，但是这里的坐标是模板图右小角在原图中的坐标
  * @param res_msg: 错误的信息
  * @param image: 原图的像素裸数据
  * @param temp: 模板图的像素裸数据
@@ -37,18 +37,25 @@ bool ar::templateMatchPSR(int* res,
 		}
 	}
 
+	// 这个是记录找打的最小差异的像素累计值，目前是按最大值去匹配计算
 	int cur_min_diff = 255 * temp_width * temp_height;
+	// 下面的循环就是根据累计的区域的像素和找到最匹配的区域位置坐标
 	for (int i = temp_height - 1; i < image_height; i++) {
 		for (int j = temp_width - 1; j < image_width; j++) {
+			// 上面两个循环就是以模板图在原图中的右下角坐标为指标进行遍历，因为是计算像素累计和
+
 			if (i == temp_height - 1 && j == temp_width - 1) {
-				int region_sum = prefix_sum_array[i * image_width + j];
-				int region_diff = abs(region_sum - temp_sum);
+				// 最开始的位置
+				int region_sum = prefix_sum_array[i * image_width + j]; // 拿到原图像素和
+				int region_diff = abs(region_sum - temp_sum); // 对比差值
+				// 如果差值小于阈值大小并且也比找到的小，则记录坐标
 				if (region_diff < 255 * temp_height * temp_width * (1 - threshold) && region_diff < cur_min_diff) {
 					res[0] = j; res[1] = i;
 					cur_min_diff = region_diff;
 				}
 			}
 			else if (i > temp_height - 1 && j == temp_width - 1) {
+				// 第一列
 				int region_sum = prefix_sum_array[i * image_width + j] - prefix_sum_array[(i - temp_height) * image_width + j];
 				int region_diff = abs(region_sum - temp_sum);
 				if (region_diff < 255 * temp_height * temp_width * (1 - threshold) && region_diff < cur_min_diff) {
@@ -57,6 +64,7 @@ bool ar::templateMatchPSR(int* res,
 				}
 			}
 			else if (i == temp_height - 1 && j > temp_width - 1) {
+				// 第一行
 				int region_sum = prefix_sum_array[i * image_width + j] - prefix_sum_array[i * image_width + j - temp_width];
 				int region_diff = abs(region_sum - temp_sum);
 				if (region_diff < 255 * temp_height * temp_width * (1 - threshold) && region_diff < cur_min_diff) {
@@ -65,6 +73,7 @@ bool ar::templateMatchPSR(int* res,
 				}
 			}
 			else {
+				// 其他情况
 				int region_sum = prefix_sum_array[i * image_width + j] - prefix_sum_array[i * image_width + j - temp_width] - prefix_sum_array[(i - temp_height) * image_width + j] + prefix_sum_array[(i - temp_height) * image_width + j - temp_width];
 				int region_diff = abs(region_sum - temp_sum);
 				if (region_diff < 255 * temp_height * temp_width * (1 - threshold) && region_diff < cur_min_diff) {

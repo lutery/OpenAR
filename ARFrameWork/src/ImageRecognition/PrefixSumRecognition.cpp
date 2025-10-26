@@ -43,6 +43,7 @@ ar::point ar::PrefixSumRecognition::compareImageReturnCentrePoint(cv::Mat& image
 	}
 
 	if (res[0] != -1 && res[1] != -1)
+	// 由于找到的是右下角的坐标，所以这里是使用-得到中心点的坐标
 		point = { (res[0] - temp.cols / 2), (res[1] - temp.rows / 2), 0, false };
 	return point;
 }

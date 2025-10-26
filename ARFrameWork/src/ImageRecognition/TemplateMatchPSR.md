@@ -203,3 +203,229 @@ for (int i = temp_height - 1; i < image_height; i++) {
 5. **实际应用**：OpenAR 框架默认使用 MPR 算法（`num_points=36`），在需要极致性能时可切换到 PSR
 
 这种数据结构在计算机视觉中非常常见，OpenCV 的 `cv::integral()` 函数也是同样的原理。
+
+# PSR 算法代码优化建议
+
+分析 `templateMatchPSR` 函数后，发现存在大量**重复代码**，可以通过统一的公式简化。以下是优化方案：
+
+## 问题分析
+
+当前代码将四种边界情况分别处理：
+1. 左上角起点 `(temp_height-1, temp_width-1)`
+2. 第一列 `j = temp_width-1`
+3. 第一行 `i = temp_height-1`
+4. 一般情况
+
+实际上，这四种情况可以统一为一个公式，**通过边界检查自动处理越界情况**。
+
+## 优化方案
+
+### 方案 1：统一公式 + 边界检查（推荐）
+
+```cpp
+bool ar::templateMatchPSR(int* res,
+    std::string& res_msg,
+    unsigned char* image,
+    unsigned char* temp,
+    const int& image_width,
+    const int& image_height,
+    const int& temp_width,
+    const int& temp_height,
+    const float& threshold)
+{
+    // 1. 生成前缀和数组
+    int* prefix_sum_array = new int[image_width * image_height];
+    ar::detail::generateImagePrefixSumArray(prefix_sum_array, image, image_width, image_height);
+
+    // 2. 计算模板图片的像素总和
+    int temp_sum = 0;
+    for (int i = 0; i < temp_height; i++) {
+        for (int j = 0; j < temp_width; j++) {
+            temp_sum += temp[i * temp_width + j];
+        }
+    }
+
+    // 3. 计算阈值对应的最大允许差异
+    int max_allowed_diff = static_cast<int>(255 * temp_height * temp_width * (1 - threshold));
+    int cur_min_diff = 255 * temp_width * temp_height;
+
+    // 4. 滑动窗口遍历所有可能的匹配位置
+    for (int i = temp_height - 1; i < image_height; i++) {
+        for (int j = temp_width - 1; j < image_width; j++) {
+            
+            // 使用统一的容斥原理公式计算矩形区域像素和
+            // region_sum = 右下角 - 左边界外 - 上边界外 + 左上角外（避免重复减）
+            int region_sum = prefix_sum_array[i * image_width + j];
+            
+            // 减去左侧区域（如果存在）
+            if (j >= temp_width) {
+                region_sum -= prefix_sum_array[i * image_width + (j - temp_width)];
+            }
+            
+            // 减去上方区域（如果存在）
+            if (i >= temp_height) {
+                region_sum -= prefix_sum_array[(i - temp_height) * image_width + j];
+            }
+            
+            // 加回重复减去的左上角区域（如果存在）
+            if (i >= temp_height && j >= temp_width) {
+                region_sum += prefix_sum_array[(i - temp_height) * image_width + (j - temp_width)];
+            }
+
+            // 计算差异并判断是否满足阈值
+            int region_diff = abs(region_sum - temp_sum);
+            if (region_diff < max_allowed_diff && region_diff < cur_min_diff) {
+                res[0] = j - temp_width + 1;   // 匹配区域的左上角 x 坐标
+                res[1] = i - temp_height + 1;  // 匹配区域的左上角 y 坐标
+                cur_min_diff = region_diff;
+            }
+        }
+    }
+
+    delete[] prefix_sum_array;
+    return true;
+}
+```
+
+### 方案 2：内联 Lambda 简化（C++11+，更优雅）
+
+```cpp
+bool ar::templateMatchPSR(int* res,
+    std::string& res_msg,
+    unsigned char* image,
+    unsigned char* temp,
+    const int& image_width,
+    const int& image_height,
+    const int& temp_width,
+    const int& temp_height,
+    const float& threshold)
+{
+    // 1. 生成前缀和数组
+    int* prefix_sum_array = new int[image_width * image_height];
+    ar::detail::generateImagePrefixSumArray(prefix_sum_array, image, image_width, image_height);
+
+    // 2. 计算模板像素总和
+    int temp_sum = 0;
+    for (int i = 0; i < temp_height; i++) {
+        for (int j = 0; j < temp_width; j++) {
+            temp_sum += temp[i * temp_width + j];
+        }
+    }
+
+    // 3. 辅助函数：安全获取前缀和值（越界返回 0）
+    auto get_prefix_sum = [&](int row, int col) -> int {
+        if (row < 0 || col < 0) return 0;
+        return prefix_sum_array[row * image_width + col];
+    };
+
+    // 4. 滑动窗口匹配
+    int max_allowed_diff = static_cast<int>(255 * temp_height * temp_width * (1 - threshold));
+    int cur_min_diff = 255 * temp_width * temp_height;
+
+    for (int i = temp_height - 1; i < image_height; i++) {
+        for (int j = temp_width - 1; j < image_width; j++) {
+            
+            // 统一的容斥原理公式
+            int region_sum = get_prefix_sum(i, j)
+                           - get_prefix_sum(i, j - temp_width)
+                           - get_prefix_sum(i - temp_height, j)
+                           + get_prefix_sum(i - temp_height, j - temp_width);
+
+            int region_diff = abs(region_sum - temp_sum);
+            if (region_diff < max_allowed_diff && region_diff < cur_min_diff) {
+                res[0] = j - temp_width + 1;
+                res[1] = i - temp_height + 1;
+                cur_min_diff = region_diff;
+            }
+        }
+    }
+
+    delete[] prefix_sum_array;
+    return true;
+}
+```
+
+## 关键改进点
+
+### 1. **坐标修正（重要 Bug 修复）**
+
+原代码中 `res[0] = j; res[1] = i;` 存储的是**右下角坐标**，但语义上应该返回**左上角坐标**：
+
+```cpp
+// ❌ 原代码（错误）
+res[0] = j;  // 右下角 x
+res[1] = i;  // 右下角 y
+
+// ✅ 修正后（正确）
+res[0] = j - temp_width + 1;   // 左上角 x
+res[1] = i - temp_height + 1;  // 左上角 y
+```
+
+**验证**：
+- 模板大小 100×80，匹配右下角在 (199, 179)
+- 左上角应该是 (199-100+1, 179-80+1) = (100, 100) ✅
+
+### 2. **阈值预计算**
+
+```cpp
+// ❌ 原代码：每次循环重复计算
+if (region_diff < 255 * temp_height * temp_width * (1 - threshold) && ...)
+
+// ✅ 优化后：循环前计算一次
+int max_allowed_diff = static_cast<int>(255 * temp_height * temp_width * (1 - threshold));
+if (region_diff < max_allowed_diff && ...)
+```
+
+**性能提升**：避免 `(W-tw)×(H-th)` 次重复乘法运算。
+
+### 3. **消除代码重复**
+
+```cpp
+// ❌ 原代码：81 行（4 个几乎相同的 if-else 分支）
+if (i == temp_height - 1 && j == temp_width - 1) { /* 12 行 */ }
+else if (i > temp_height - 1 && j == temp_width - 1) { /* 12 行 */ }
+else if (i == temp_height - 1 && j > temp_width - 1) { /* 12 行 */ }
+else { /* 12 行 */ }
+
+// ✅ 优化后：25 行（统一逻辑）
+int region_sum = get_prefix_sum(i, j) - ... + ...;
+if (region_diff < max_allowed_diff && region_diff < cur_min_diff) { /* 3 行 */ }
+```
+
+**可维护性提升**：修改匹配逻辑只需改一处。
+
+## 性能对比
+
+| 优化项 | 原实现 | 优化后 | 提升 |
+|--------|--------|--------|------|
+| **代码行数** | ~81 行 | ~25 行 | 减少 69% |
+| **阈值计算** | 每次循环 | 循环前 1 次 | 避免 10⁵ 次重复计算 |
+| **分支预测** | 4 个 if-else | 统一逻辑 | CPU 分支预测更准确 |
+| **可读性** | 重复逻辑难维护 | 清晰统一 | 降低维护成本 |
+
+## 同步修复 CUDA 版本
+
+别忘了同步修复 `ARCuda/src/TemplateMatchPSRCuda.cu`，应用相同的优化。
+
+## 编译验证
+
+修改后请编译测试：
+
+```bash
+# Visual Studio
+1. 打开 ARFrameWork.sln
+2. 设置 ARFrameWork 为启动项目
+3. 编译（Ctrl+Shift+B）
+4. 运行单元测试验证结果一致性
+```
+
+## 总结
+
+✅ **推荐使用方案 2（Lambda 版本）**，理由：
+1. 代码最简洁优雅
+2. 统一的容斥原理公式，易于理解
+3. 自动处理边界情况，无需分支判断
+4. 修复了坐标返回值的语义错误
+5. 性能优化：预计算阈值，减少重复运算
+
+需要我帮您生成完整的测试代码验证优化效果吗？
