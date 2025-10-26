@@ -64,6 +64,7 @@ void pcr::checkImageCompareRate(ar::imageRecognitionType image_recognition_type)
     auto end = std::chrono::high_resolution_clock::now();
     if(!p.is_empty) ar::info("x: {} y: {}", p.x, p.y);
     std::chrono::duration<double, std::milli> duration = end - start;
+    // 打印不同匹配算法的耗时
     switch (image_recognition_type) {
     case(ar::imageRecognitionType::MPR):
         ar::info("MPR Match two image use {} ms !", (int)duration.count());

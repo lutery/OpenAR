@@ -3,10 +3,10 @@
 namespace ar{
 
 struct point{
-    int x = 0; // todo
-    int y = 0; // todo
+    int x = 0; // temp图片最匹配时中心点的x坐标在image图片中的位置
+    int y = 0; // temp图片最匹配时中心点的y坐标在image图片中的位置
     unsigned char data = 0; // todo
-    bool is_empty = true; // todo
+    bool is_empty = true; // 这里是标记是否找到了最匹配的位置
 };
 
 /**

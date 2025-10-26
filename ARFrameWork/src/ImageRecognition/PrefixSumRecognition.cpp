@@ -2,9 +2,17 @@
 #include <ImageRecognition/TemplateMatchPSR.h>
 #include <Log/MiniLog.h>
 
+/**
+ * @brief Compare two images and return the center point of the best match
+ * 
+ * @param image 原图
+ * @param temp 待匹配模板图
+ * @param threshold 匹配阈值
+ */
 ar::point ar::PrefixSumRecognition::compareImageReturnCentrePoint(cv::Mat& image, cv::Mat& temp, const float& threshold)
 {
 	ar::point point;
+	// 确认图片的有效性并且原图要大于模板图
 	if (temp.empty() || image.empty()) {
 		ar::error("Image empty !");
 		return point;
@@ -13,9 +21,11 @@ ar::point ar::PrefixSumRecognition::compareImageReturnCentrePoint(cv::Mat& image
 		ar::error("temp size : {} > image size : {} !", temp.rows * temp.cols, image.rows * image.cols);
 		return point;
 	}
+
+	// 仅支持灰度图 todo：是否支持彩色图
 	if (temp.channels() != 1) cv::cvtColor(temp, temp, cv::COLOR_BGR2GRAY);
 	if (image.channels() != 1) cv::cvtColor(image, image, cv::COLOR_BGR2GRAY);
-	int res[2] = { -1, -1 };
+	int res[2] = { -1, -1 }; // 这个应该也是存储找到最匹配最值的坐标（即模板图片在原图中的左上角的坐标）
 	std::string res_msg = "";
 	bool err = false;
 	err = ar::templateMatchPSR(res,
