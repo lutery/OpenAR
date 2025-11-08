@@ -2,7 +2,10 @@
 #include <string>
 
 namespace ar {
-
+	
+	/**
+	 * 定义了OpenAR的模拟器设备错误
+	 */
 	enum struct ARDeviceError : int {
 		AR_NO_ERROR,
 		AR_INVALID_COMMAND,

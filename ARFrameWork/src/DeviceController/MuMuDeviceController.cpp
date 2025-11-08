@@ -9,6 +9,11 @@ constexpr std::string ar::MuMuDeviceController::getMuMuManagerPath(std::string p
     return path + "\\" + "shell" + "\\" + "MuMuManager.exe";
 }
 
+/**
+ * @brief 这个是用来检查命令返回值是否合法的函数，通过检查返回值中是否包含"{"来判断
+ * 
+ * @return 如果返回值合法，返回AR_NO_ERROR，否则返回AR_INVALID_COMMAND
+ */
 ar::ARDeviceError ar::MuMuDeviceController::checkIsCommandValid(std::string cmd_res) {
     if (cmd_res.find("{") == std::string::npos) return ar::ARDeviceError::AR_INVALID_COMMAND;
     else return ar::ARDeviceError::AR_NO_ERROR;
@@ -46,10 +51,19 @@ ar::ARDeviceError ar::MuMuDeviceController::getDeviceInfo(const int& index, ar::
     return ar::ARDeviceError::AR_NO_ERROR;
 }
 
+/**
+ * todo
+ * 
+ * @param index: todo
+ * 
+ * @return 如果设备索引合法，返回AR_NO_ERROR，否则返回AR_INVALID_INDEX
+ */
 ar::ARDeviceError ar::MuMuDeviceController::checkIsDeviceIndexValid(const int& index){
     ar::ARDeviceError err = ar::ARDeviceError::AR_NO_ERROR;
     bool state = false;
+    // 接收命令执行的结果
     std::string cmd_res;
+    // 应该是构建一个mumu模拟器的命令，用于获取模拟器信息，根据index信息，看看获取设备信息是否成功，从而判断index是否合法
     std::string cmd = std::format("{} {} {}", ar::MuMuDeviceController::getMuMuManagerPath(mumu_path), "info -v", index);
     ar::exec_cmd(cmd, cmd_res);
     err = ar::MuMuDeviceController::checkIsCommandValid(cmd_res);
@@ -57,6 +71,8 @@ ar::ARDeviceError ar::MuMuDeviceController::checkIsDeviceIndexValid(const int& i
         ar::error("Cmd invalid !");
         return ar::ARDeviceError::AR_INVALID_COMMAND;
     }
+
+    // 这里进一步判断index是否合法，如果返回的json中包含error_code且值为0，则说明index合法
     rapidjson::Document d;
     d.Parse(cmd_res.c_str());
     if (d.HasMember("error_code") && d["error_code"] == 0) return ar::ARDeviceError::AR_NO_ERROR;
@@ -94,6 +110,7 @@ ar::ARDeviceError ar::MuMuDeviceController::checkDeviceState(const int& index){
 ar::ARDeviceError ar::MuMuDeviceController::lauchDevice(const int& index){
     ar::ARDeviceError err = ar::ARDeviceError::AR_NO_ERROR;
     std::string cmd_res;
+    // 构建启动mumu模拟器的命令
     std::string cmd = std::format("{} {} {} {}",
     ar::MuMuDeviceController::getMuMuManagerPath(mumu_path), "control -v", index, "launch");
     err = ar::MuMuDeviceController::checkIsDeviceIndexValid(index);

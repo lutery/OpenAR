@@ -9,7 +9,7 @@
 #include <MainLineNormal.h>
 #include <Store.h>
 #include <Log/MiniLog.h>
-#include <TextRecognition/TesseractOCR.h>
+//#include <TextRecognition/TesseractOCR.h>
 
 int main(){
     ar::setMiniLogLevel(ar::level::debug);
@@ -37,7 +37,7 @@ int main(){
     pcr::checkImageCompareRate(ar::imageRecognitionType::MPR);
 
     //task
-    /*pcr::launchDevice(params);
+    pcr::launchDevice(params);
     pcr::login(params);
     pcr::execute_schedule(params);
     pcr::receive_gifts(params);
@@ -47,6 +47,6 @@ int main(){
     pcr::store_params s_params;
     s_params.is_buy_lotion = true;
     s_params.is_buy_refining_stone = true;
-    pcr::Store(params, s_params);*/
+    pcr::Store(params, s_params);
     return 0;
 }
