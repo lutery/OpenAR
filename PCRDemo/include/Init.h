@@ -18,7 +18,7 @@ public:
     ar::deviceControllerType device_controller_type; // 安卓设备的类型，目前只有MuMu模拟器
     
     bool start_with_silence = false; // todo
-    int operate_duration = 500; //ms todo
+    int operate_duration = 500; //ms 每次操作的延迟等待时间，估计是没什么好的判断标识，只能选择等待
     int run_max_times = 200;
 
     std::unique_ptr<ar::Controller> controller;

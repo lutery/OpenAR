@@ -112,7 +112,7 @@ ar::ARDeviceError ar::MuMuDeviceController::lauchDevice(const int& index){
     std::string cmd_res;
     // 构建启动mumu模拟器的命令
     std::string cmd = std::format("{} {} {} {}",
-    ar::MuMuDeviceController::getMuMuManagerPath(mumu_path), "control -v", index, "launch");
+        ar::MuMuDeviceController::getMuMuManagerPath(mumu_path), "control -v", index, "launch");
     err = ar::MuMuDeviceController::checkIsDeviceIndexValid(index);
     if (err != ar::ARDeviceError::AR_NO_ERROR) {
         ar::error("Invalid MuMu index : {}", index);
