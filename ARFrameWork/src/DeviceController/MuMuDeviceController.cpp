@@ -52,9 +52,9 @@ ar::ARDeviceError ar::MuMuDeviceController::getDeviceInfo(const int& index, ar::
 }
 
 /**
- * todo
+ * 通过执行mumu模拟器的info命令从而判断设备是否正常，但是这个和参数index好像没关系吧，看起来只是一个占位符
  * 
- * @param index: todo
+ * @param index: todo 
  * 
  * @return 如果设备索引合法，返回AR_NO_ERROR，否则返回AR_INVALID_INDEX
  */
@@ -125,6 +125,7 @@ ar::ARDeviceError ar::MuMuDeviceController::lauchDevice(const int& index){
         return ar::ARDeviceError::AR_INVALID_COMMAND;
     }
 
+    // 确认mumu模拟器启动的报错，如果则会在命令行输出json块中的errCode不等于0
     rapidjson::Document d; d.Parse(cmd_res.c_str());
     if (d["errcode"].GetInt() != 0) {
         ar::error("Unknown error in MuMu {} !", index);
@@ -221,6 +222,10 @@ ar::ARDeviceError ar::MuMuDeviceController::showWindow(const int& index){
     return ar::ARDeviceError::AR_NO_ERROR;
 }
 
+/**
+ * 同样是利用mumu模拟器的控制参数，去隐藏窗口
+ * 构建命令执行
+ */
 ar::ARDeviceError ar::MuMuDeviceController::hideWindow(const int& index){
     ar::ARDeviceError err = ar::ARDeviceError::AR_NO_ERROR;
     std::string cmd_res;
@@ -237,6 +242,7 @@ ar::ARDeviceError ar::MuMuDeviceController::hideWindow(const int& index){
         return ar::ARDeviceError::AR_DEVICE_OFFLINE;
     }
     ar::exec_cmd(cmd, cmd_res);
+    // todo 这里可以使用rapidjson::Document直接尝试解析去优化代码，而不是提前判断是否是合法的jsonge是
     err = ar::MuMuDeviceController::checkIsCommandValid(cmd_res);
     if (err != ar::ARDeviceError::AR_NO_ERROR) {
         ar::error("Cmd invalid !");

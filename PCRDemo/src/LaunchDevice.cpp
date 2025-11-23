@@ -6,6 +6,7 @@ void pcr::launchDevice(pcr::global_params& params){
     ar::info("Launch MuMu {}", params.index);
     ar::appInfo info;
     do{
+        // todo 这里真的是在利用循环不断的判断模拟器是否启动吗？因为一旦返回的不是NO ERROR 则直接退出了？
         Sleep(params.operate_duration);
         if(params.device_controller->lauchDevice(params.index)!= ar::ARDeviceError::AR_NO_ERROR)std::exit(0);
     }while(params.device_controller->checkDeviceState(params.index) != ar::ARDeviceError::AR_NO_ERROR);
