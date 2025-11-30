@@ -26,6 +26,7 @@ ar::ARDeviceError ar::MuMuDeviceController::getDeviceInfo(const int& index, ar::
     std::string cmd_res;
     std::string cmd = std::format("{} {} {}", ar::MuMuDeviceController::getMuMuManagerPath(mumu_path), "info -v", index);
     ar::exec_cmd(cmd, cmd_res);
+    // 防御性编程，多次重复执行判断虚拟机是否启动的命令
     err = ar::MuMuDeviceController::checkIsCommandValid(cmd_res);
     if (err != ar::ARDeviceError::AR_NO_ERROR) {
         ar::error("Cmd invalid !");
@@ -52,7 +53,7 @@ ar::ARDeviceError ar::MuMuDeviceController::getDeviceInfo(const int& index, ar::
 }
 
 /**
- * 通过执行mumu模拟器的info命令从而判断设备是否正常，但是这个和参数index好像没关系吧，看起来只是一个占位符
+ * 通过执行mumu模拟器的info命令从而判断指定index的安卓虚拟机是否正常
  * 
  * @param index: todo 
  * 
@@ -79,6 +80,11 @@ ar::ARDeviceError ar::MuMuDeviceController::checkIsDeviceIndexValid(const int& i
     return ar::ARDeviceError::AR_INVALID_INDEX;
 }
 
+/**
+ * @brief 同样是构建info命令获取对应虚拟机是否启动，从命令返回的is_process_started标识判断
+ * 
+ * @param index: 指定index虚拟机的索引
+ */
 ar::ARDeviceError ar::MuMuDeviceController::checkDeviceState(const int& index){
     ar::ARDeviceError err = ar::ARDeviceError::AR_NO_ERROR;
     bool state = false;
@@ -90,6 +96,7 @@ ar::ARDeviceError ar::MuMuDeviceController::checkDeviceState(const int& index){
         return ar::ARDeviceError::AR_INVALID_COMMAND;
     }
     
+    // todo 可以优化，直接尝试解析json优化
     ar::exec_cmd(cmd, cmd_res);
     err = ar::MuMuDeviceController::checkIsCommandValid(cmd_res);
     if (err != ar::ARDeviceError::AR_NO_ERROR) {
@@ -102,6 +109,8 @@ ar::ARDeviceError ar::MuMuDeviceController::checkDeviceState(const int& index){
         ar::error("Invalid MuMu index: {}", index);
         std::exit(0);
     }
+
+    // 从info返回的标识去判断设备是否正常
     state = d["is_process_started"].GetBool();
     if (state == true) return ar::ARDeviceError::AR_NO_ERROR;
     return ar::ARDeviceError::AR_DEVICE_OFFLINE;
@@ -257,23 +266,33 @@ ar::ARDeviceError ar::MuMuDeviceController::hideWindow(const int& index){
     return ar::ARDeviceError::AR_NO_ERROR;
 }
 
+/**
+ * 启动指定包名的APP， 模拟器有一个launch命令
+ * 
+ * @param index: 指定启动的模拟器索引，因为有可能mumu模拟器可能是一个虚拟机管理其，会启动多个虚拟机，通过inde下去选择指定的安卓虚拟机启动应用
+ * @param app_name: 指定包名
+ */
 ar::ARDeviceError ar::MuMuDeviceController::lauchApp(const int& index, const std::string& app_name){
     ar::ARDeviceError err = ar::ARDeviceError::AR_NO_ERROR;
     std::string cmd_res;
+    // 构建启动app的命令
     std::string cmd = std::format("{} {} {} {} {}",
     ar::MuMuDeviceController::getMuMuManagerPath(mumu_path), "control -v", index, "app launch -pkg", app_name);
+    // 判断指定的虚拟机是否正常
     err = ar::MuMuDeviceController::checkIsDeviceIndexValid(index);
     if (err != ar::ARDeviceError::AR_NO_ERROR) {
         ar::error("Invalid MuMu index : {}", index);
         return ar::ARDeviceError::AR_INVALID_INDEX;
     }
+    // 判断虚拟机是否启动，但是从代码来看可以和上一步checkIsDeviceIndexValid中进行合并
     err = ar::MuMuDeviceController::checkDeviceState(index);
     if (err != ar::ARDeviceError::AR_NO_ERROR) {
         ar::error("MuMu index : {} offline !", index);
         return ar::ARDeviceError::AR_DEVICE_OFFLINE;
     }
     ar::exec_cmd(cmd, cmd_res);
-    //warning ! checkIsCommandValid will not check app_name !
+    //warning ! checkIsCommandValid will not check app_name ! 
+    // 这里仅判断返回值有没有大括号
     err = ar::MuMuDeviceController::checkIsCommandValid(cmd_res);
     if (err != ar::ARDeviceError::AR_NO_ERROR) {
         ar::error("Cmd invalid !");
@@ -284,6 +303,8 @@ ar::ARDeviceError ar::MuMuDeviceController::lauchApp(const int& index, const std
         ar::error("Unknown error in MuMu {} !", index);
         return ar::ARDeviceError::AR_UNKNOWN_ERROR;
     }
+
+    // 如果执行命令的返回值没有任何错误，则返回启动成功
     ar::info("Launch {} in MuMu {}", app_name, index);
     return ar::ARDeviceError::AR_NO_ERROR;
 }
@@ -319,9 +340,17 @@ ar::ARDeviceError ar::MuMuDeviceController::closeApp(const int& index, const std
     return ar::ARDeviceError::AR_NO_ERROR;
 }
 
+/**
+ * 依旧是通过mumu模拟器的命令，获取指定app的状态，从而判断app是否启动成功
+ * 
+ * @param index: 指定虚拟机的序号
+ * @param app_name: 指定获取app信息的包名
+ * @param info: 获取返回的app信息
+ */
 ar::ARDeviceError ar::MuMuDeviceController::getAppState(const int& index, const std::string& app_name, appInfo& info){
     ar::ARDeviceError err = ar::ARDeviceError::AR_NO_ERROR;
     std::string cmd_res;
+    // 构建获取app信息的命令
     std::string cmd = std::format("{} {} {} {} {}",
     ar::MuMuDeviceController::getMuMuManagerPath(mumu_path), "control -v", index, "app info -pkg", app_name);
     err = ar::MuMuDeviceController::checkIsDeviceIndexValid(index);
@@ -329,11 +358,15 @@ ar::ARDeviceError ar::MuMuDeviceController::getAppState(const int& index, const 
         ar::error("Invalid MuMu index : {}", index);
         return ar::ARDeviceError::AR_INVALID_INDEX;
     }
+    // 判断指定 的虚拟机是否启动成功
     err = ar::MuMuDeviceController::checkDeviceState(index); 
     if (err != ar::ARDeviceError::AR_NO_ERROR) {
         ar::error("MuMu index : {} offline !", index);
         return ar::ARDeviceError::AR_DEVICE_OFFLINE;
     }
+
+    // 执行命令，获取对应app的状态，从返回值的state标识中，通过标识确认
+    // app是否安装、是否启动
     ar::exec_cmd(cmd, cmd_res);
     err = ar::MuMuDeviceController::checkIsCommandValid(cmd_res);
     if (err != ar::ARDeviceError::AR_NO_ERROR) {
