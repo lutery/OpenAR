@@ -6,6 +6,7 @@
 
 namespace ar{
 
+// MuMu模拟器设备控制器类，todo 和MuMuController的区别是啥？
 class MuMuDeviceController : public DeviceController{
 private:
     std::string mumu_path;
@@ -14,6 +15,7 @@ private:
 
     ARDeviceError checkIsCommandValid(std::string cmd);
 public:
+    // 仅进行了传入了参数存储，没有其他的操作
     MuMuDeviceController(const std::string mumu_path);
 
     ARDeviceError getDeviceInfo(const int& index, deviceInfo& info) override;

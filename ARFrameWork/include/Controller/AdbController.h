@@ -3,13 +3,14 @@
 #include <string>
 
 namespace ar {
-
+	// adb命令控制器类
 	class AdbController : public Controller {
 	private:
 		std::string adb_path = "";
 		int adb_port = 0;
 		bool is_initialize = false;
 	public:
+		// 构造函数只是单纯的存储对应的参数
 		AdbController(std::string adb_path, int adb_port);
 		~AdbController();
 		bool initialize() override;

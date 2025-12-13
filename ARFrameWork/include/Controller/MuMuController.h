@@ -13,12 +13,13 @@ public:
     int width;
 };
 
+// mumu模拟器控制器类
 class MuMuController : public Controller{
 private:
     const std::string adb_path;
     const int adb_port;
     const wchar_t* mumu_path;
-    const int index;
+    const int index; // mumu模拟器启动的索引
     bool is_initialize = false;
     int handle = 0;
     int window_height = 0, window_width = 0;
@@ -32,6 +33,7 @@ private:
     typedef int (*NemuKeyUpFunc)(int, int, int);
 public:
     ~MuMuController();
+    // 构造函数，仅仅只是存储传入的参数
     MuMuController(const std::string adb_path, const int adb_port, const wchar_t* mumu_path, const int index);
     bool initialize() override;
     bool connect() override;

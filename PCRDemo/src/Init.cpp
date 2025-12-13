@@ -43,9 +43,11 @@ pcr::global_params::global_params(const std::string device_path,
         params.adb_port = adb_port;
     }
 
+    // 通过工厂类创建对应的控制器对象
     ar::ControllerFactory controller_factory;
     controller = controller_factory.createController(params, controller_type);
-
+    
+    // 通过工厂类创建一个对应的控制器对象
     ar::DeviceControllerFactory device_controller_factory;
     device_controller = device_controller_factory.createDeviceController(m_deviceControllerType, device_path);
 
