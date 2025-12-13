@@ -4,6 +4,13 @@
 #include <Log/MiniLog.h>
 #include <stdlib.h>
 
+/**
+ * 全局参数构造函数
+ * 主要实现：
+ * 1. 传入参数的保存
+ * 2. 创建设备/模拟器控制器对象
+ * 3. 创建图像识别对象
+ */
 pcr::global_params::global_params(const std::string device_path,
                                   const int index,
                                   std::string adb_path,
@@ -51,6 +58,7 @@ pcr::global_params::global_params(const std::string device_path,
     ar::DeviceControllerFactory device_controller_factory;
     device_controller = device_controller_factory.createDeviceController(m_deviceControllerType, device_path);
 
+    // 通过工厂类创建图像识别对象
     ar::ImageRecognitionFactory image_recognition_factory;
     image_recognition = image_recognition_factory.createIamgeRecognition(image_recognition_type);
 }

@@ -5,6 +5,9 @@
 #include <ImageRecognition/CudaMultiPointsRecognition.h>
 #endif
 
+/**
+ * 根据不同的图像识别的类型，创建不同的图像识别对象
+ */
 std::unique_ptr<ar::ImageRecognition> ar::ImageRecognitionFactory::createIamgeRecognition(ar::imageRecognitionType type){
     switch(type){
         case(ar::imageRecognitionType::MPR):

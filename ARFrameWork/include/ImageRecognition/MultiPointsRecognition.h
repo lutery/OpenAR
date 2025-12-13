@@ -12,7 +12,7 @@ public:
 
     point compareImageReturnCentrePoint(const std::string& image_path, const std::string& temp_path, const float& threshold = 0.95f) override;
 
-    const unsigned int num_points = 32; // todo 看起来是设备的采样点数
+    const unsigned int num_points = 32; // 看起来是图像匹配时的采样点数
 };
 
 }

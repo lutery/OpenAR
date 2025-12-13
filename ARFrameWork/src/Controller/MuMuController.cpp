@@ -29,35 +29,50 @@ ar::MuMuController::~MuMuController(){
     disconnect();
 }
 
+/**
+ * Mumu模拟器初始化
+ * 1. 验证ADB可以链接
+ * 2. 加载mumu模拟器的动态库，调用动态库的方法去验证动态库正常加载了
+ * 3. 以上没问题后，说明模拟器初始化成功
+ */
 bool ar::MuMuController::initialize(){
     bool err = false;
     std::string cmd_res;
+    // 执行ADB连接命令
     std::string cmd = std::format("{} {} {}:{}", ADB_EXE_PATH, "connect", adb_path, adb_port);
     ar::debug("{}", cmd);
     exec_cmd(cmd, cmd_res);
     if (cmd_res.find("(10016)") != std::string::npos || cmd_res.find("error") != std::string::npos) {
+        // 如果执行的命令中有包含以上内容，说明执行的命令出错了，则打印错误并返回false
         ar::error("Cannot connect {}:{} .Please check this host !", adb_path, adb_port);
         return false;
     }
-    hDLL = LOAD_LIBRARY(MUMUCONTROLLER_DLL_PATH);
+    hDLL = LOAD_LIBRARY(MUMUCONTROLLER_DLL_PATH); // todo 加载的是要给什么库？
     if (hDLL == NULL) {
         ar::error("Cannot find external_renderer_ipc.dll");
         return false;
     }
+    // 链接到模拟器
     err = connect();
     if (!err) {
         ar::error("Initialize fail !");
         return false;
     }
+    // 从目标动态库中获取对应方法的句柄，这里应该是模拟器有一个NemuCaptureFunc的方法用来截图使用 todo 后续确认下这个库的由来
     LOAD_FUNCTION(hDLL, nemu_capture_display, NemuCaptureFunc);
+    // 使用特殊的方法截图，用来验证动态库是没有问题的
     if(CALL_FUNC(nemu_capture_display, handle, 0, 0, &window_width, &window_height, nullptr) != 0){
         ar::error("Get screencap pixels failed!");
         return false;
     }
+    //验证通过，初始化完成
     is_initialize = true;
     return true;
 }
 
+/**
+ * todo 这里可能是从加载的动态库中，使用Mumu模拟器专用的连接方法去链接MUMU模拟器实现控制功能
+ */
 bool ar::MuMuController::connect(){
     LOAD_FUNCTION(hDLL, nemu_connect, NemuConnectFunc);
     handle = CALL_FUNC(nemu_connect, mumu_path, index);
@@ -143,6 +158,9 @@ bool ar::MuMuController::inputKey(const int key_code){
     return true;
 }
 
+/**
+ * MuMu模拟器评估截屏
+ */
 bool ar::MuMuController::screencap(cv::Mat& image_){
     bool err = false;
     if (!is_initialize) {

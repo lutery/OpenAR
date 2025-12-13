@@ -15,6 +15,10 @@ ar::AdbController::~AdbController() {
 	disconnect();
 }
 
+/**
+ * 普通的安卓设备的初始化
+ * 1. 仅ADB链接成功了说明初始化成功 
+ */
 bool ar::AdbController::initialize() {
 	bool err = false;
 	err = connect();
