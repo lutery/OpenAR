@@ -3,6 +3,7 @@
 
 void pcr::login(pcr::global_params& params)
 {
+    // 使用宏定义，通过opencv mat imread加载图片
     LOAD_IMAGE(skip, "res/pcr/skip.png");
     LOAD_IMAGE(confirm_blue, "res/pcr/confirm_blue.png");
     LOAD_IMAGE(close_white, "res/pcr/close_white.png");
@@ -10,7 +11,7 @@ void pcr::login(pcr::global_params& params)
     LOAD_IMAGE(download, "res/pcr/download.png");
 
     bool stop_condition = false;
-    int times = 0;
+    int times = 0; // 记录尝试启动的次数，用于超过指定次数时报错
 
     ar::info("Start launch pcr !");
     stop_condition = false; times = 0; 

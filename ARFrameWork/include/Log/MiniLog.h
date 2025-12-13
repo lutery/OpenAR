@@ -50,6 +50,7 @@ void info(const std::format_string<_Types...> _Fmt, _Types&&... _Args) {
     detail::callMiniLog(msg, level::info);
 }
 
+// 可以查看markdown文件
 template <typename... _Types>
 void warn(const std::format_string<_Types...> _Fmt, _Types&&... _Args) {
     std::string msg = std::vformat(_Fmt.get(), std::make_format_args(_Args...));

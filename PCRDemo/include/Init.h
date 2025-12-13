@@ -19,7 +19,7 @@ public:
     
     bool start_with_silence = false; // todo
     int operate_duration = 500; //ms 每次操作的延迟等待时间，估计是没什么好的判断标识，只能选择等待
-    int run_max_times = 200;
+    int run_max_times = 200; // 最大的重试次数，如果一个操作重试的次数超过了这个，则判断为有问题，自动退出
 
     std::unique_ptr<ar::Controller> controller;
     std::unique_ptr<ar::DeviceController> device_controller;
