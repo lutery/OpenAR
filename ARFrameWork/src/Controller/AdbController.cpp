@@ -63,13 +63,18 @@ bool ar::AdbController::disconnect() {
 	return true;
 }
 
+/**
+ * ADB方式点击指定的位置
+ */
 bool ar::AdbController::click(const int x, const int y) {
 	//command .\adb\adb.exe -s 127.0.0.1:xxxxx shell input tap x y
 	bool err = false;
+	// 防御性编程
 	if (!is_initialize) {
 		err = initialize();
 		if (!err) return false;
 	}
+	// 使用ADB命令去执行点击命令
 	std::string cmd_res;
 	std::string cmd = std::format("{} {} {}:{} {} {} {} {} {}", ADB_EXE_PATH, "-s", adb_path, adb_port, "shell", "input", "tap", x, y);
 	ar::debug("{}", cmd);
@@ -150,14 +155,20 @@ bool ar::AdbController::swipe(const int x_1, const int y_1, const int x_2, const
 	return true;
 }
 
+/**
+ * Adb截图实现
+ * 都是通过adb命令实现的
+ */
 bool ar::AdbController::screencap(cv::Mat& image_) {
 	//command one .\adb\adb.exe -s 127.0.0.1:xxxxx shell screencap /data/screen.png
 	//command two .\adb\adb.exe -s 127.0.0.1:xxxxx pull /data/screen.png .
 	bool err = false;
+	// 防御性编程，只有初始化后才能使用
 	if (!is_initialize) {
 		err = initialize();
 		if (!err) return false;
 	}
+	// 构建ADB截图命令，截图，将截屏的图片保存到指定的目录
 	std::string cmd_res;
 	std::string cmd = std::format("{} {} {}:{} {} {} {}",
 		ADB_EXE_PATH,
@@ -172,6 +183,7 @@ bool ar::AdbController::screencap(cv::Mat& image_) {
 		ar::error("Screencap fail !");
 		return false;
 	}
+	// 再将截图的图片拷贝到电脑上
 	cmd = std::format("{} {} {}:{} {} {} {}",
 		ADB_EXE_PATH,
 		"-s",
@@ -185,6 +197,7 @@ bool ar::AdbController::screencap(cv::Mat& image_) {
 		ar::error("Screencap fail !");
 		return false;
 	}
+	// 通过加载图片判断图片是否截图、拷贝成功
 	image_ = cv::imread("./screen.png");
 	if (image_.empty()) {
 		ar::error("Image empty in {} !", "./screen.png");

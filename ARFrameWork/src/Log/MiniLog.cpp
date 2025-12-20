@@ -78,7 +78,7 @@ void ar::miniLogShutDown() {
 
 void ar::detail::callMiniLog(const std::string& msg, ar::level lv) {
     if (lv == ar::level::trace) spdlog::trace(msg);
-    if (lv == ar::level::debug) spdlog::debug(msg);
+    if (lv == ar::level::debug) spdlog::debug(msg); // 这里开始i调用的是第三方的日志库，与本项目无关，则不注释
     if (lv == ar::level::info) spdlog::info(msg);
     if (lv == ar::level::warn) spdlog::warn(msg);
     if (lv == ar::level::err) spdlog::error(msg);

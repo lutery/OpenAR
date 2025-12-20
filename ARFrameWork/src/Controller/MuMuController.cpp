@@ -103,15 +103,22 @@ bool ar::MuMuController::disconnect(){
     return true;
 }
 
+/**
+ * 使用MuMu模拟器专用的方法实现点击
+ */
 bool ar::MuMuController::click(const int x, const int y){
     bool err = false;
+    // 防御性编程
     if (!is_initialize) {
         err = initialize();
         if (!err) return false;
     }
-    LOAD_FUNCTION(hDLL, nemu_input_event_touch_down, NemuTouchDownFunc);
-    LOAD_FUNCTION(hDLL, nemu_input_event_touch_up, NemuTouchUpFunc);
+
+    // 加载对应动态库方法
+    LOAD_FUNCTION(hDLL, nemu_input_event_touch_down, NemuTouchDownFunc); // 按下
+    LOAD_FUNCTION(hDLL, nemu_input_event_touch_up, NemuTouchUpFunc); // 松开
     int x_ = window_height - y, y_ = x;
+    // 点击指定的位置
     if(CALL_FUNC(nemu_input_event_touch_down, handle, 0, x_, y_) ||
     CALL_FUNC(nemu_input_event_touch_up, handle, 0)){
     ar::error("Mouse click at {},{} false!", x, y);
@@ -163,19 +170,26 @@ bool ar::MuMuController::inputKey(const int key_code){
  */
 bool ar::MuMuController::screencap(cv::Mat& image_){
     bool err = false;
+    // 防御性编程
     if (!is_initialize) {
         err = initialize();
         if (!err) return false;
     }
+    // 从动态库句柄中加载nemu_capture_display名称的函数，这个函数主要是用来截图的
     LOAD_FUNCTION(hDLL, nemu_capture_display, NemuCaptureFunc);
+    // 准备一个足够大的缓冲区用来存储截图的像素数据
     std::vector<uchar> img_data;
     img_data.resize(window_width * window_height * 4);
+
+    // 调用动态库的函数
     if(CALL_FUNC(nemu_capture_display, handle, 0, static_cast<int>(img_data.size()), &window_width, &window_height, img_data.data()) != 0){
         ar::error("Get screencap pixels failed!");
         return false;
     }
+    // 将截图得到的图片像素裸数据转换为opencv的mat格式
     cv::Mat dst_img(window_height, window_width, CV_8UC4, img_data.data());
     cv::cvtColor(dst_img, dst_img, cv::COLOR_RGBA2BGR);
+    // 看起来截屏的图片是需要反转的
     cv::flip(dst_img, dst_img, 0);
     image_ = dst_img.clone();
     return true;
