@@ -37,9 +37,9 @@ int main(){
     pcr::checkImageCompareRate(ar::imageRecognitionType::MPR);
 
     //task
-    pcr::launchDevice(params);
-    pcr::login(params);
-    pcr::execute_schedule(params);
+    pcr::launchDevice(params); // 启动游戏
+    pcr::login(params); // 处理登录界面
+    pcr::execute_schedule(params); // 
     pcr::receive_gifts(params);
     pcr::main_line_normal_params normal_params;
     normal_params.is_auto_execute_in_multi_drop = true;

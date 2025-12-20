@@ -4,9 +4,9 @@
 
 /**
  * @brief
- * @param image todo 这是什么图
- * @param temp todo 这是什么图
- * @param threshold todo
+ * @param image 原图
+ * @param temp 模板图片
+ * @param threshold 图片对比是通过灰度图的方式，需要设置一个灰度图
  */
 ar::point ar::MultiPointsRecognition::compareImageReturnCentrePoint(cv::Mat& image, cv::Mat& temp, const float& threshold) {
 	ar::point point;
@@ -50,6 +50,9 @@ ar::point ar::MultiPointsRecognition::compareImageReturnCentrePoint(cv::Mat& ima
 	return point;
 }
 
+/**
+ * 与另一个方法不同的地方在于传入的是图片的路径
+ */
 ar::point ar::MultiPointsRecognition::compareImageReturnCentrePoint(const std::string& image_path, const std::string& temp_path, const float& threshold) {
 	ar::point point;
 	cv::Mat image = cv::imread(image_path);

@@ -26,20 +26,31 @@ ar::point ar::CudaMultiPointsRecognition::compareImageReturnCentrePoint(cv::Mat&
 	// 将图片转换为灰度图
 	if (image.channels() != 1) cv::cvtColor(image, image, cv::COLOR_BGR2GRAY);
 	if (temp.channels() != 1) cv::cvtColor(temp, temp, cv::COLOR_BGR2GRAY);
+	// 使用模板匹配Cuda版本得到point
 	if (!ar::templateMatchMPRCuda(res, msg, image.data, temp.data, image.cols, image.rows, temp.cols, temp.rows, threshold, num_points))
 	{
 		ar::error("{}", msg);
 		return point;
 	}
+	// 如果找到了位置，那么将坐标的位置移动到匹配图片的中心点
 	if (res[0] != -1 && res[1] != -1)
 		point = { (res[0] + temp.cols / 2), (res[1] + temp.rows / 2), 0, false };
 	return point;
 }
 
+/**
+ * 从image中找到temp模板图片的中心位置
+ * 与另一个方法不同的地方在于传入的图片是图片的路径
+ * 
+ * @param image: 原图
+ * @param temp: 模板图片
+ * @param threshold: 阈值，估计是为了二值化 
+ */
 ar::point ar::CudaMultiPointsRecognition::compareImageReturnCentrePoint(const std::string& image_path, const std::string& temp_path, const float& threshold) {
 	ar::point point;
 	cv::Mat image = cv::imread(image_path);
 	cv::Mat temp = cv::imread(temp_path);
+	// 如另一个方法
 	if (image.empty() || temp.empty()) { ar::error("Image empty !"); std::exit(0); }
 	if (image.rows * image.cols < temp.rows * temp.cols) {
 		ar::error("temp size : {} > image size : {} !",
@@ -48,6 +59,7 @@ ar::point ar::CudaMultiPointsRecognition::compareImageReturnCentrePoint(const st
 	}
 	int res[2] = { -1, -1 };
 	std::string msg = "";
+	// 如另一个方法
 	if (image.channels() != 1) cv::cvtColor(image, image, cv::COLOR_BGR2GRAY);
 	if (temp.channels() != 1) cv::cvtColor(temp, temp, cv::COLOR_BGR2GRAY);
 	if (!ar::templateMatchMPRCuda(res, msg, image.data, temp.data, image.cols, image.rows, temp.cols, temp.rows, threshold, num_points))
