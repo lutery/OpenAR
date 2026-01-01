@@ -39,11 +39,11 @@ int main(){
     //task
     pcr::launchDevice(params); // 启动游戏
     pcr::login(params); // 处理登录界面
-    pcr::execute_schedule(params); // 
-    pcr::receive_gifts(params);
+    pcr::execute_schedule(params); // 接收日程奖励
+    pcr::receive_gifts(params); // 接收好友赠送的体力
     pcr::main_line_normal_params normal_params;
-    normal_params.is_auto_execute_in_multi_drop = true;
-    pcr::main_line_normal(params, normal_params);
+    normal_params.is_auto_execute_in_multi_drop = true; //这个是在干嘛？ 这个应该是对应游戏的特定模式，如果开启了该配置并检测到了就会自动执行
+    pcr::main_line_normal(params, normal_params); 
     pcr::store_params s_params;
     s_params.is_buy_lotion = true;
     s_params.is_buy_refining_stone = true;

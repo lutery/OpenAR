@@ -3,6 +3,10 @@
 #include <Log/MiniLog.h>
 #include <define.hpp>
 
+/**
+ * 也没啥好说的，都是按照游戏流程，对比模板图片，找到位置，点击按钮，完成游戏
+ * 如果点击失败则退出自动化流程
+ */
 void pcr::receive_gifts(pcr::global_params& params) {
 	LOAD_IMAGE(gift, "./res/pcr/gift.png");
 	LOAD_IMAGE(gift_box, "./res/pcr/gift_box.png");

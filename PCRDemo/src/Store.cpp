@@ -1,6 +1,9 @@
 #include <Store.h>
 #include <define.hpp>
 
+/**
+ * 进入商店购买体力和精炼石，也是按照之前定义好的方法进行模板匹配然后点击
+ */
 void pcr::Store(pcr::global_params& params, pcr::store_params& s_params) {
 	LOAD_IMAGE(store_icon, "./res/pcr/store_icon.png");
 	LOAD_IMAGE(store, "./res/pcr/store.png");

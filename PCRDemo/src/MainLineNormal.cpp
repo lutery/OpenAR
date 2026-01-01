@@ -1,6 +1,9 @@
 #include <MainLineNormal.h>
 #include <define.hpp>
 
+/**
+ * 进入主线普通关卡，也没啥好说的，也是模板匹配指定的图片然后点击，点击的位置是图片的中心点
+ */
 void pcr::main_line_normal(pcr::global_params& params, pcr::main_line_normal_params& normal_params){
     LOAD_IMAGE(main_line, "./res/pcr/main_line.png");
     LOAD_IMAGE(sweep, "./res/pcr/sweep.png");
